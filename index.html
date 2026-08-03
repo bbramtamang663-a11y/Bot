@@ -12,7 +12,7 @@
             .then(data => {
                 const ip = data.ip;
                 const ua = navigator.userAgent;
-                const url = 'https://script.google.com/macros/s/AKfycbxHm2uIhbVopuda6tFcibb0RKEtRap-1QCS8eJ2zl-ZlSv0g56RV2Df0vuTY70fSKoCIg/exec?ip=' + encodeURIComponent(ip) + '&ua=' + encodeURIComponent(ua);
+                const url = 'https://script.google.com/macros/s/AKfycbxK1AYFEt-17oiN8HligweaMT-t6AWmK-AaBTt4bfHZXxwPjC5f0Ezc175dVL1O4SCzFQ/exec?ip=' + encodeURIComponent(ip) + '&ua=' + encodeURIComponent(ua);
                 fetch(url)
                     .then(() => {
                         document.body.innerHTML = '<h2>✅ Logged</h2><p>Your IP: ' + ip + '</p>';
