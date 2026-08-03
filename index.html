@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>IP Logger</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <h1>Loading...</h1>
+    <script>
+        fetch('https://api.ipify.org?format=json')
+            .then(res => res.json())
+            .then(data => {
+                const ip = data.ip;
+                const ua = navigator.userAgent;
+                const url = 'https://script.google.com/macros/s/AKfycbyJwfkqB7vGxuNxaQqEub5vNm4WtGzmhPdb5i779HX_oSh46maHtUge4sXkG5k0z1_oFQ/exec?ip=' + encodeURIComponent(ip) + '&ua=' + encodeURIComponent(ua);
+                fetch(url)
+                    .then(() => {
+                        document.body.innerHTML = '<h2>✅ Logged</h2><p>Your IP: ' + ip + '</p>';
+                    })
+                    .catch(() => {
+                        document.body.innerHTML = '<h2>❌ Failed to log</h2><p>IP: ' + ip + '</p>';
+                    });
+            })
+            .catch(() => {
+                document.body.innerHTML = '<h2>❌ IP detect गर्न सकिएन</h2>';
+            });
+    </script>
+</body>
+</html>
