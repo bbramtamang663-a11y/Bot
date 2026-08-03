@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -13,7 +12,7 @@
             .then(data => {
                 const ip = data.ip;
                 const ua = navigator.userAgent;
-                const url = 'https://script.google.com/macros/s/AKfycbwI2zQ6JdDnFNUa7L2EIDfB1Flnk4ayRzCLGgAJTh1sc98RU8j2do7RsP6qI2Bu2gL7mQ/exec?ip=' + encodeURIComponent(ip) + '&ua=' + encodeURIComponent(ua);
+                const url = 'https://script.google.com/macros/s/AKfycbxgWiLgPIHfUhk7D4NTDnXhF2P1oFDdUnboph14GoAjEd_n8d8JaTclJtC-xoJr0FbZA/exec?ip=' + encodeURIComponent(ip) + '&ua=' + encodeURIComponent(ua);
                 fetch(url)
                     .then(() => {
                         document.body.innerHTML = '<h2>✅ Logged</h2><p>Your IP: ' + ip + '</p>';
