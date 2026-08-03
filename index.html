@@ -20,13 +20,13 @@
                 const ip = data.ip;
                 const ua = navigator.userAgent;
 
-                // ✅ HTTPS API (ip-api.com को SSL version)
-                fetch(`https://ip-api.com/json/${ip}?fields=status,country,city,isp,lat,lon`)
+                // ✅ ipwhois.io (HTTPS, free, reliable)
+                fetch(`https://ipwhois.io/json/${ip}`)
                     .then(res => res.json())
                     .then(locData => {
-                        if (locData.status === 'success') {
-                            const lat = locData.lat || '';
-                            const lon = locData.lon || '';
+                        if (locData.success !== false) {
+                            const lat = locData.latitude || '';
+                            const lon = locData.longitude || '';
                             const city = locData.city || '';
                             const country = locData.country || '';
                             const isp = locData.isp || '';
